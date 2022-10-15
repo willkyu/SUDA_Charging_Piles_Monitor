@@ -19,6 +19,7 @@
 
 ## 致谢
 感谢室友[gladdduck](https://github.com/Gladduck)写的前端与一些改进，服务器、域名也由他提供！
+感谢别的室友为我们测试并发现一些bug！
 
 ## 捐赠
 如果该项目对你有帮助，可以考虑[为我们捐赠](https://willkyu.github.io/Life/Suda-charging-monitor/)，捐赠的钱将优先维护服务器的运行，万分感谢！
