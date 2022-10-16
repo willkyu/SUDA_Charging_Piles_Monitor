@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>苏大充电桩监控</title>
+  <link href="https://cdn.bootcdn.net/ajax/libs/element-plus/2.1.0/theme-chalk/index.min.css" rel="stylesheet" />
+  <link rel="shortcut icon" href="./ico.png" type ="image/x-icon" sizes="144x144"/>
+</head>
+
+<body>
+  <div id="app">
+    <div class="container" style="min-height: 100%; padding-bottom: 100px;">
+      <div></div>
+      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" required>
+        <el-form-item label="邮箱" prop="useremail">
+          <el-autocomplete v-model='ruleForm.useremail' :fetch-suggestions="querySearchItem" @select="handleSelect">
+          </el-autocomplete>
+        </el-form-item>
+
+        <el-form-item label="地点" prop="region1">
+          <el-select v-model="region1" placeholder="请选地点" @change='region1change'>
+            <el-option v-for="region in one" :label="region" :value="region" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="机位" prop="region2">
+          <el-select v-model="region2" placeholder="请选择几号机" @change='region2change'>
+            <el-option v-for="(value,key,index) in showValue[region1]" :label="key" :value="key" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="桩位" prop="region3">
+          <el-select v-model="region3" placeholder="请选择几号桩">
+            <el-option v-for="num in showValue[region1][region2]" :label="num" :value="num" />
+          </el-select>
+        </el-form-item>
+        <el-radio-group v-model="radio" class="flex items-center ">
+          <el-radio :label="1">查询</el-radio>
+          <el-radio :label="2">监控</el-radio>
+        </el-radio-group>
+        <el-container>
+          <el-button type="warning" plain size="large">资源有限，请认真填写</el-button>
+          <el-footer>
+            <el-button type="success" plain @click="onButtonSucess" size="small">提交</el-button>
+            <!-- <el-rate v-model="starvalue"></el-rate> -->
+            <el-button type="info" plain @click="onButtonReset" size="small">重置</el-button>
+          </el-footer>
+        </el-container>
+        <el-collapse>
+          <el-collapse-item title="感谢" name="1">
+            <div>在<el-link type="success" href="http://sudacharge.haoxiaoren.com">苏大充电助手</el-link>基础上二次开发</div>
+          </el-collapse-item>
+          <el-collapse-item title="关于" name="2">
+            <div>
+              made by <el-link type="success" href="https://space.bilibili.com/74149400">willkyu</el-link>,<el-link type="success" href="https://space.bilibili.com/384115063">gladdduck</el-link>
+            <br>项目开源地址: <el-link type="success" href="https://github.com/willkyu/SUDA_Charging_Piles_Monitor">github</el-link>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </el-form>
+    </div>
+  </div>
+</body>
+<!-- <script src="https://unpkg.com/axios/dist/axios.min.js"></script> -->
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/3.2.31/vue.global.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/element-plus/2.1.0/index.full.min.js"></script>
+<script src="./axios.min.js"></script>
+
+<script>
+  Vue.createApp({
+    props: [],
+    components: {},
+    data() {
+      var checkEmail = (rule, value, callback) => {
+        const mailReg = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
+        if (!value) {
+          return callback(new Error('邮箱不能为空'))
+        }
+        setTimeout(() => {
+          if (mailReg.test(value)) {
+            callback()
+          } else {
+            callback(new Error('请输入正确的邮箱格式'))
+          }
+        }, 100)
+      }
+
+      return {
+        ruleForm: {
+          useremail: "",
+        },
+        radio: 2,
+        starvalue: 0,
+        region1: "东吴桥下",
+        region2: "一号机",
+        region3: "1",
+        one: ['东吴桥下', '东七宿舍楼', '本七宿舍楼', '逸夫楼', '文思楼'],
+        showValue: "",
+        itemConfigs: ['111', '222', '3333'],
+        rules: {
+          useremail: [
+            { validator: checkEmail, trigger: ['change', 'blur'] }
+          ]
+        }
+
+      }
+    },
+    watch: {},
+    computed: {},
+    created() {
+      this.showValue = {
+        '东吴桥下': { '一号机': this.generateArray(56), '二号机': this.generateArray(44), '三号机': this.generateArray(50) },
+        '东七宿舍楼': { '一号机': this.generateArray(64), '二号机': this.generateArray(64) },
+        '本七宿舍楼': { '一号机': this.generateArray(64), '二号机': this.generateArray(64) },
+        '逸夫楼': { '一号机': this.generateArray(62) },
+        '文思楼': { '一号机': this.generateArray(56), '二号机': this.generateArray(64) },
+      }
+      this.showValue = JSON.parse(JSON.stringify(this.showValue))
+    },
+    methods: {
+      generateArray(end) {
+        return Array.from(new Array(end + 1).keys()).slice(1)
+      },
+      region1change(value) {
+        this.region2 = "一号机"
+        this.region3 = "1"
+      },
+      region2change(value) {
+        this.region3 = "1"
+      },
+      async onButtonSucess() {
+        const valid = await this.$refs.ruleForm.validate().catch(err => err);
+        console.log
+        if (valid) {
+          return
+        }
+        var url = "http://yayan.xyz:8888/t";
+        var key=Math.random().toString(36).slice(-8)+'lmy'+Math.random().toString(36).slice(-8)
+        var data = {
+          'useremail': this.ruleForm.useremail,
+          'region1': this.region1,
+          'region2': this.region2,
+          'region3': this.region3,
+          'type': this.radio,
+          'key': key
+        }
+        axios.post(
+          url,
+          JSON.stringify(data),
+          {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 1000 * 10
+          })
+          .then(res => {
+            console.log(res.data)
+            if (res.data.state == 'sucess') {
+              ElementPlus.ElMessage({
+                message: '提交成功，请查看邮箱',
+                type: 'success',
+              })
+              // this.onButtonReset()
+            } else {
+              ElementPlus.ElMessage({
+                message: '有些地方出错了，再试一次',
+                type: 'error',
+              })
+            }
+          })
+          .catch(function (error) {
+            console.log(error)
+            ElementPlus.ElMessage({
+              message: '服务器出问题了，稍等一会',
+              type: 'error',
+            })
+          });
+      },
+      onButtonReset() {
+        this.ruleForm.useremail = ""
+        this.starvalue = 0
+        this.region1 = "东吴桥下"
+        this.region2 = "一号机"
+        this.region3 = "1"
+      },
+      handleSelect(item) {
+        this.ruleForm.useremail = item.value.toString()
+      },
+      querySearchItem(queryString, cb) {
+        let results = [
+          { "value": "@qq.com", "address": "None" },
+          { "value": "@gmail.com", "address": "None" },
+          { "value": "@163.com", "address": "None" },
+          { "value": "@suda.edu.cn", "address": "None" },
+        ];
+
+        if (queryString.search("@") != -1) {
+          answer = [{ "value": queryString, "address": "None" }]
+          cb(answer);
+        } else {
+          answer = results.filter(this.createFilter(queryString))
+          cb(answer);
+        }
+
+      },
+      createFilter(queryString) {
+        return (item) => {
+          item.value = queryString + item.value
+          return item
+        };
+      },
+
+    },
+  }
+  )
+    .use(ElementPlus)
+    .mount("#app");
+</script>
+
+</html>
