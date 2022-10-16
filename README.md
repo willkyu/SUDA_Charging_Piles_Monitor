@@ -20,6 +20,8 @@
 如果你要自己搭建属于自己的监控，请将**util\mailTools.py**中的一些邮件相关配置替换为自己的发件箱。
 
 ## 致谢
+感谢苏大的[充电助手网站](http://sudacharge.haoxiaoren.com/)，该项目就是基于这个网页写的。
+
 感谢室友[gladdduck](https://github.com/Gladduck)写的前端与一些改进，服务器、域名也由他提供！
 
 感谢别的室友为我们测试并发现一些bug！
