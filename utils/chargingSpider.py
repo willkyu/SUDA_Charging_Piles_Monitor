@@ -17,5 +17,5 @@ def getTextFromURL(targetURL):
         #     print('无货')
         return r.text
     except:
-        print("爬取失败")
+        # print("爬取失败")
         return 'failed.'
