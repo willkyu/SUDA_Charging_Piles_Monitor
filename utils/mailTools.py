@@ -33,12 +33,13 @@ def sendMail(toMail, myMessage):
         print ("Error: 无法发送邮件")
 
 
+
 def CXreply(toMail,dict,groupname,tipsDict):
     #translateDict={'东吴桥下':'Under DongWu Bridge','东七宿舍楼':'East 7 Dormitory','本七宿舍楼':'Center 7 Dormitory','逸夫楼':'YiFu Building','文思楼':'WenSi Building','一号机':'Machine.NO.1','二号机':'Machine.NO.2','三号机':'Machine.NO.3','一号机 (不支持扫码支付)':'(NO.1 Pile Do NOT support scan to pay)'}
     translateDict={'东吴桥下':'Under DongWu Bridge','东七宿舍楼':'East 7 Dormitory','本七宿舍楼':'Center 7 Dormitory','逸夫楼':'YiFu Building',\
     '文思楼':'WenSi Building','一号机':'Machine.NO.1','二号机':'Machine.NO.2','三号机':'Machine.NO.3',\
         '食堂':'Canteen','1C号楼':'NO.1C Building','1B号楼':'NO.1B Building','B02号楼':'NO.B02 Building','B04号楼':'NO.B04 Building',\
-            '201号楼':'NO.201 Building','109号楼':'NO.109 building','食堂西北角':'Northwest corner of Canteen','104号楼':'NO.104 building','一号机 (不支持扫码支付)':'(Do NOT support scan to pay)',\
+            '201号楼':'NO.201 Building','109号楼':'NO.109 building','食堂西北角':'Northwest corner of Canteen','104号楼':'NO.104 building',\
                 '01180111':'Machine.01180111','01180146':'Machine.01180146','01180112':'Machine.01180112','01180193':'Machine.01180193','01180074':'Machine.01180074','01180110':'Machine.01180110',\
                     '01180192':'Machine.01180192','01180050':'Machine.01180050','01180058':'Machine.01180058'}
     message=translateDict[groupname]+' Charging piles standing by:\n===========\n'
@@ -47,8 +48,8 @@ def CXreply(toMail,dict,groupname,tipsDict):
         standbyList = [it for it in value if value[it]=='standby']
         message+= '\t\t'+', '.join(standbyList)+'\n=========================================\n'
 
-    if tipsDict[groupname]:
-        message+='\n******'+translateDict[groupname]+' '.join(translateDict[tipsDict[groupname][0]]+'******')
+    if groupname=='东吴桥下':
+        message+='\n******'+translateDict[groupname]+' (Machine.NO.1 Do NOT support scan to pay)******'
     sendMail(toMail,message)
     #print(dict)
     return
