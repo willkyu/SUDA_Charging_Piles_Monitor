@@ -99,55 +99,59 @@ if __name__ == '__main__':
     JK = 'JK.pkl'
     CX = 'CX.pkl'
     while 1:
-        # 爬虫 SPIDER_TIME秒一次
-        if failedCount==0:
-            # 连续爬取失败FAILED_COUNT次，服务器可能在维修
-            spiderCount = 300
-        if spiderCount == SPIDER_TIME:
-            chargingDictMain0,groupItemDict0,tipsDict0,failedCount,\
-                newEmailList,newTargetList,newStatusList=\
-                    Monitor1Epoch(userEmailList,userTargetList,userStatusList,failedCount)
-            if failedCount==5:
-                # 爬取成功，覆盖List
-                userEmailList = newEmailList
-                userTargetList = newTargetList
-                userStatusList = newStatusList
-                chargingDictMain,groupItemDict,tipsDict = chargingDictMain0,groupItemDict0,tipsDict0
-            pass
-        elif spiderCount==0:
-            spiderCount = SPIDER_TIME+1
-            
-        CXlist = readpickle(CX)
-        for [itemEmail,itemXQ,itemGroup] in CXlist:
-            CXreply(itemEmail,chargingDictMain[itemXQ][itemGroup],itemGroup,tipsDict)
-        clearList=[]
-        writepickle(CX,clearList)
-    
-        if readJKFileCount==READJKFILE_TIME:
-            JKlist=readpickle(JK)
-            for [itemEmail,itemTarget] in JKlist:
-                if itemTarget[3] not in chargingDictMain[itemTarget[0]][itemTarget[1]][itemTarget[2]]:
-                    sendMail(itemEmail,'{}, {}, {} is offline or not existed! please change pile.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
-                elif chargingDictMain[itemTarget[0]][itemTarget[1]][itemTarget[2]][itemTarget[3]] == 'offline':
-                    sendMail(itemEmail,'{}, {}, {} is offline! please change pile.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
-                elif (itemEmail in userEmailList) and (userTargetList[userEmailList.index(itemEmail)] != itemTarget):
-                    userTargetList[userEmailList.index(itemEmail)] = itemTarget
-                    userStatusList[userEmailList.index(itemEmail)] = MAX_TIME
-                    sendMail(itemEmail,'You have changed your monitor target to: {}, {}, {}.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
-                elif itemEmail not in userEmailList:
-                    userEmailList.append(itemEmail)
-                    userTargetList.append(itemTarget)
-                    userStatusList.append(MAX_TIME)
-                    sendMail(itemEmail,'Start Monitoring with target: {}, {}, {}.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
-                else:
-                    sendMail(itemEmail,'Do not submit again! You have been monitoring target:{}, {}, {}.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
-
+        try:
+            # 爬虫 SPIDER_TIME秒一次
+            if failedCount==0:
+                # 连续爬取失败FAILED_COUNT次，服务器可能在维修
+                spiderCount = 300
+            if spiderCount == SPIDER_TIME:
+                chargingDictMain0,groupItemDict0,tipsDict0,failedCount,\
+                    newEmailList,newTargetList,newStatusList=\
+                        Monitor1Epoch(userEmailList,userTargetList,userStatusList,failedCount)
+                if failedCount==5:
+                    # 爬取成功，覆盖List
+                    userEmailList = newEmailList
+                    userTargetList = newTargetList
+                    userStatusList = newStatusList
+                    chargingDictMain,groupItemDict,tipsDict = chargingDictMain0,groupItemDict0,tipsDict0
+                pass
+            elif spiderCount==0:
+                spiderCount = SPIDER_TIME+1
+                
+            CXlist = readpickle(CX)
+            for [itemEmail,itemXQ,itemGroup] in CXlist:
+                CXreply(itemEmail,chargingDictMain[itemXQ][itemGroup],itemGroup,tipsDict)
             clearList=[]
-            writepickle(JK,clearList)
-        elif readJKFileCount==0:
-            readJKFileCount = READJKFILE_TIME+1
+            writepickle(CX,clearList)
         
-        readJKFileCount-=1
-        spiderCount-=1
+            if readJKFileCount==READJKFILE_TIME:
+                JKlist=readpickle(JK)
+                for [itemEmail,itemTarget] in JKlist:
+                    if itemTarget[3] not in chargingDictMain[itemTarget[0]][itemTarget[1]][itemTarget[2]]:
+                        sendMail(itemEmail,'{}, {}, {} is offline or not existed! please change pile.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
+                    elif chargingDictMain[itemTarget[0]][itemTarget[1]][itemTarget[2]][itemTarget[3]] == 'offline':
+                        sendMail(itemEmail,'{}, {}, {} is offline! please change pile.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
+                    elif (itemEmail in userEmailList) and (userTargetList[userEmailList.index(itemEmail)] != itemTarget):
+                        userTargetList[userEmailList.index(itemEmail)] = itemTarget
+                        userStatusList[userEmailList.index(itemEmail)] = MAX_TIME
+                        sendMail(itemEmail,'You have changed your monitor target to: {}, {}, {}.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
+                    elif itemEmail not in userEmailList:
+                        userEmailList.append(itemEmail)
+                        userTargetList.append(itemTarget)
+                        userStatusList.append(MAX_TIME)
+                        sendMail(itemEmail,'Start Monitoring with target: {}, {}, {}.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
+                    else:
+                        sendMail(itemEmail,'Do not submit again! You have been monitoring target:{}, {}, {}.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
 
-        sleep(1)
+                clearList=[]
+                writepickle(JK,clearList)
+            elif readJKFileCount==0:
+                readJKFileCount = READJKFILE_TIME+1
+            
+            readJKFileCount-=1
+            spiderCount-=1
+
+            sleep(1)
+        
+        except:
+            pass
