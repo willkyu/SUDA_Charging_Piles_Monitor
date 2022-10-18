@@ -53,13 +53,13 @@ def Monitor1Epoch(userEmailList,userTargetList,userStatusList,failedCount):
     # 爬取成功failedCount重置
     failedCount = FAILDED_COUNT
 
+
     chargingDict,groupItemDict,tipsDict = Text2Dict(urlText, groupList)
     chargingDict_dsh,groupItemDict_dsh,tipsDict_dsh = Text2Dict(urlText_dsh, groupList_dsh)
     chargingDict_ych,groupItemDict_ych,tipsDict_ych = Text2Dict(urlText_ych, groupList_ych)
     # tipsDict = tipsDict.update(tipsDict_dsh)
     # tipsDict = tipsDict.update(tipsDict_ych)
     chargingDictMain = {'天赐庄':chargingDict,'独墅湖':chargingDict_dsh,'阳澄湖':chargingDict_ych}
-
 
     newEmailList=[]
     newTargetList=[]
@@ -96,37 +96,48 @@ if __name__ == '__main__':
     tipsDict={}
     chargingDictMain={}
 
-    JK = 'JK.pkl'
-    CX = 'CX.pkl'
+    JK = '/anaconda/pythoncode/ChargingMonitor/JK.pkl'
+    CX = '/anaconda/pythoncode/ChargingMonitor/CX.pkl'
     while 1:
-        try:
-            # 爬虫 SPIDER_TIME秒一次
-            if failedCount==0:
-                # 连续爬取失败FAILED_COUNT次，服务器可能在维修
-                spiderCount = 300
-            if spiderCount == SPIDER_TIME:
-                chargingDictMain0,groupItemDict0,tipsDict0,failedCount,\
-                    newEmailList,newTargetList,newStatusList=\
-                        Monitor1Epoch(userEmailList,userTargetList,userStatusList,failedCount)
-                if failedCount==5:
-                    # 爬取成功，覆盖List
-                    userEmailList = newEmailList
-                    userTargetList = newTargetList
-                    userStatusList = newStatusList
-                    chargingDictMain,groupItemDict,tipsDict = chargingDictMain0,groupItemDict0,tipsDict0
+        # 爬虫 SPIDER_TIME秒一次
+        if failedCount==0:
+            # 连续爬取失败FAILED_COUNT次，服务器可能在维修
+            spiderCount = 300
+            for toMail in userEmailList:
+                sendMail(toMail,'The service is under maintenance.....\nPlease wait for reopening and try again later.\nVisit http://sudacharge.haoxiaoren.com/ to see if service is opened.')
+            userEmailList=[]
+            userStatusList=[]
+            userTargetList=[]
+        if spiderCount == SPIDER_TIME:
+            chargingDictMain0,groupItemDict0,tipsDict0,failedCount,\
+                newEmailList,newTargetList,newStatusList=\
+                    Monitor1Epoch(userEmailList,userTargetList,userStatusList,failedCount)
+            if failedCount==FAILDED_COUNT:
+                # 爬取成功，覆盖List
+                userEmailList = newEmailList
+                userTargetList = newTargetList
+                userStatusList = newStatusList
+                chargingDictMain,groupItemDict,tipsDict = chargingDictMain0,groupItemDict0,tipsDict0
                 pass
-            elif spiderCount==0:
-                spiderCount = SPIDER_TIME+1
-                
-            CXlist = readpickle(CX)
-            for [itemEmail,itemXQ,itemGroup] in CXlist:
-                CXreply(itemEmail,chargingDictMain[itemXQ][itemGroup],itemGroup,tipsDict)
-            clearList=[]
-            writepickle(CX,clearList)
+            
+
+        elif spiderCount==0:
+            spiderCount = SPIDER_TIME+1
+            
         
-            if readJKFileCount==READJKFILE_TIME:
-                JKlist=readpickle(JK)
-                for [itemEmail,itemTarget] in JKlist:
+        CXlist = readpickle(CX)
+        for [itemEmail,itemXQ,itemGroup] in CXlist:
+            if failedCount == FAILDED_COUNT:
+                CXreply(itemEmail,chargingDictMain[itemXQ][itemGroup],itemGroup,tipsDict)
+            else:
+                sendMail(itemEmail,'The service is under maintenance.....\nPlease wait for reopening and try again later.\nVisit http://sudacharge.haoxiaoren.com/ to see if service is opened.')
+        clearList=[]
+        writepickle(CX,clearList)
+    
+        if readJKFileCount==READJKFILE_TIME:
+            JKlist=readpickle(JK)
+            for [itemEmail,itemTarget] in JKlist:
+                if failedCount == FAILDED_COUNT:
                     if itemTarget[3] not in chargingDictMain[itemTarget[0]][itemTarget[1]][itemTarget[2]]:
                         sendMail(itemEmail,'{}, {}, {} is offline or not existed! please change pile.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
                     elif chargingDictMain[itemTarget[0]][itemTarget[1]][itemTarget[2]][itemTarget[3]] == 'offline':
@@ -142,16 +153,15 @@ if __name__ == '__main__':
                         sendMail(itemEmail,'Start Monitoring with target: {}, {}, {}.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
                     else:
                         sendMail(itemEmail,'Do not submit again! You have been monitoring target:{}, {}, {}.'.format(translateDict[itemTarget[1]],translateDict[itemTarget[2]],itemTarget[3]))
-
-                clearList=[]
-                writepickle(JK,clearList)
-            elif readJKFileCount==0:
-                readJKFileCount = READJKFILE_TIME+1
-            
-            readJKFileCount-=1
-            spiderCount-=1
-
-            sleep(1)
+                else:
+                    sendMail(itemEmail,'The service is under maintenance.....\nPlease wait for reopening and try again later.\nVisit http://sudacharge.haoxiaoren.com/ to see if service is opened.')
+   
+            clearList=[]
+            writepickle(JK,clearList)
+        elif readJKFileCount==0:
+            readJKFileCount = READJKFILE_TIME+1
         
-        except:
-            pass
+        readJKFileCount-=1
+        spiderCount-=1
+
+        sleep(1)
